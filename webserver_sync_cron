@@ -1,0 +1,61 @@
+root@vmlib1:~# crontab -l
+# m h  dom mon dow   command
+15,55 0 * * * curl --silent --compressed http://www.lib.wayne.edu/info/hours
+#update RSS cache files
+0,30 * * * * curl --silent --compressed http://www.lib.wayne.edu/inc/rss/simplepie/genwidgetmaker.php
+1,31 * * * * curl --silent --compressed http://www.lib.wayne.edu/inc/rss/simplepie/medwidgetmaker.php
+55 22 * * * curl --silent --compressed http://trc.wayne.edu/cron.php
+45 23 * * * /root/scripts/mysql_backup_script
+5 0 * * * curl --silent --compressed http://www.lib.wayne.edu/services/instruction/calculator/mail_cron.php
+2 * * * * curl --silent --compressed http://www.lib.wayne.edu/services/instruction/calculator/sms_cron.php
+0 6 * * * su root -c "sh /global/live/sites/cgi/stats/piwik/misc/cron/archive.sh" > /dev/null
+#Sychronizing staging to live sites
+# otl is no longer hosted JG Mar 17 2015
+#47 23 * * * rsync -vrlt --delete /global/staging/sites/otl /global/live/sites/ >> /var/log/sync_otl.log
+45 23 * * * rsync -vrlt --delete root@141.217.20.112:/global/staging/sites/mobile /global/live/sites/ >> /var/log/sync_mobile.log
+#31 23 * * * rsync -vrlt --delete /global/staging/sites/lib /global/live/sites/ >> /var/log/sync_lib.log
+31 23 * * * rsync -vrlt --exclude=branding.php --exclude "clickheat" root@141.217.20.112:/global/staging/sites/lib /global/live/sites/ >> /var/log/sync_lib.log
+33 23 * * * rsync -vrlt --exclude=branding.php --exclude "clickheat" root@141.217.20.112:/global/staging/sites/library /global/live/sites/ >> /var/log/sync_library.log
+#reverse sync clickheat
+28 23 * * * rsync -vrlt /global/live/sites/lib/clickheat /global/staging/sites/lib/
+#
+33 23 * * * rsync -vrlt --delete root@141.217.20.112:/global/staging/sites/quicksearch /global/live/sites/ >> /var/log/sync_quicksearch.log
+37 23 * * * rsync -vrlt --delete root@141.217.20.112:/global/staging/sites/idol_slis /global/live/sites/ >> /var/log/sync_idol_slis.log
+40 23 * * * rsync -vrlt --delete root@141.217.20.112:/global/staging/sites/wrtzone /global/live/sites/ >> /var/log/sync_wrtzone.log
+43 23 * * * rsync -vrlt --delete root@141.217.20.112:/global/staging/sites/yamasaki /global/live/sites/ >> /var/log/sync_yamasaki.log
+44 23 * * * rsync -vrlt --delete root@141.217.20.112:/global/staging/uploads/aud_filesdir /global/live/uploads/ >> /var/log/sync_aud_files.log
+50 23 * * * rsync -vrlt --delete root@141.217.20.112:/global/staging/sites/instruction /global/live/sites/ >> /var/log/sync_instruction.log
+59 23 * * * rsync -vrlt --delete root@141.217.20.112:/global/staging/sites/copyright /global/live/sites/ >> /var/log/sync_copyright.log
+48 23 * * * rsync -vrlt --delete root@141.217.20.112:/global/staging/sites/scholarscooperative /global/live/sites/ >> /var/log/sync_scholarscoop.log
+46 23 * * * rsync -vrlt --delete root@141.217.20.112:/global/staging/sites/teachingcommons /global/live/sites/ >> /var/log/syn_teachingcommons.log
+47 23 * * * rsync -vrlt --delete root@141.217.20.112:/global/staging/sites/printing /global/live/sites/ >> /var/log/sync_print.log
+50 23 * * * rsync -vrlt --delete root@141.217.20.112:/global/staging/sites/com1010 /global/live/sites/ >> /var/log/sync_com1010
+52 23 * * * rsync -vrlt --delete root@141.217.20.112:/global/staging/sites/researchdataservices /global/live/sites/ >> /var/log/sync_rds
+59 23 * * * rsync -vrlt --delete root@141.217.20.112:/global/staging/sites/peterhook_slis /global/live/sites/ >> /var/log/sync_peterhook
+#Synchronizing live lib1 to live lib2
+56 03 * * * rsync -vrlt --delete /global/live/sites root@141.217.20.112:/global/live/
+#Synchronizing lib1 to lib2
+05 00 * * * rsync -vrlt --delete /etc/apache2/sites-available root@141.217.20.112:/sites/etc/apache2/ >> /var/log/vhosts_rsync.log
+# old site copy to lib2 is obsolete now JG Mar 17 2015
+#58 23 * * * rsync -vrlt --delete /global root@141.217.20.112:/ >> /var/log/sync_20_112.log
+# Inserting date reference into sync logs
+40 23 * * * date >> /var/log/sync_otl.log
+39 23 * * * date >> /var/log/sync_mobile.log
+25 23 * * * date >> /var/log/sync_lib.log
+21 23 * * * date >> /var/log/sync_yamasaki.log
+21 22 * * * date >> /var/log/sync_copyright.log
+# weblog processing
+15 0 * * * /home/vm1log/scripts/weblog.pl
+#CILP Harvest - PG
+#0 23 * * 6 php /global/staging/sites/lib/resources/cilp/CILPHarvest.php
+04 23 * * 6 php /global/live/sites/lib/resources/cilp/CILPHarvest.php
+#0 23 * * 6 curl /global/staging/sites/lib/resources/cilp/CILPHarvest.php
+1,6,11,16,21,26,31,36,41,46,51,56 * * * * curl http://www.lib.wayne.edu/zadmin/monitor/
+#Nightly lib hours cache clear JG
+22 0 * * * rm /global/staging/cache/lib/hours/cache_*
+23 0 * * * rm /global/live/cache/lib/hours/cache_*
+#0 14 * * * rsync -vrlt --delete /global/staging root@141.217.20.112:/global/
+#crontab process usage check
+3,8,13,18,23,28,33,38,43,48,53,58 * * * * /root/scripts/uptime_check
+
+
