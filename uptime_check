@@ -1,0 +1,11 @@
+#!/bin/bash
+rm /tmp/uptime_check
+uptime >> /tmp/uptime_check
+cat /tmp/uptime_check | awk '{ print $11; }'
+var=`cat /tmp/uptime_check | awk '{ print $11; }'`
+int=${var/.*}
+if [ $int -ge 10 ]; then
+mail aa0344@wayne.edu < /root/scripts/mailalert
+mail josephgajda@gmail.com < /root/scripts/mailalert
+mail elliot.polak@wayne.edu < /root/scripts/mailalert
+fi

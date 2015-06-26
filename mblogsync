@@ -1,0 +1,68 @@
+#!/bin/bash
+# Script to check if specified blog's file upload directory has changed and
+# sync those changes back to www2 so they won't be lost when w2 sync to
+# www and cgi
+# Accepts: www or cgi to determine which blog directory to sync
+# Created by: Joe Gajda
+# Modified by: Matt Decker May 2, 2008
+
+
+#VARIALBLES
+sync_list_dir="/tmp/"
+sync_command="echo bob"
+if [ "$1" = "www" ]
+	then
+		sync_directory="/global/pub/www_blogdir"
+		new_list="/${sync_list_dir}blog_img_new_www_list.txt"
+		old_list="/${sync_list_dir}blog_img_old_www_list.txt"
+elif [ "$1" = "cgi" ]
+	then
+		sync_directory="/global/pub/cgi_blogsdir"
+		new_list="/${sync_list_dir}blog_img_new_cgi_list.txt"
+		old_list="/${sync_list_dir}blog_img_old_cgi_list.txt"
+elif [ "$1" = "trc" ]
+        then
+                sync_directory="/global/pub/trc_filesdir"
+                new_list="/${sync_list_dir}blog_img_new_trc_list.txt"
+                old_list="/${sync_list_dir}blog_img_old_trc_list.txt"
+elif [ "$1" = "ssp" ]
+        then
+                sync_directory="/global/pub/ssp_filesdir"
+                new_list="/${sync_list_dir}blog_img_new_ssp_list.txt"
+                old_list="/${sync_list_dir}blog_img_old_ssp_list.txt"
+
+else
+	exit 1
+fi
+
+
+
+function sync_dir () {
+        #/private/var/root/scripts/blogcall.sh
+	rsync --delete --force -Eazpgtvl $sync_directory root@141.217.172.9:/global/pub >> /var/log/blogsync.log
+	echo "Synced directory: $sync_directory at $(date)" >> /var/log/blogsync.log
+}
+
+#Get current listing of directory
+ls -lR "$sync_directory" > "$new_list"
+
+#Make sure old list is there and writable
+if [ -w "$old_list" ]
+        then
+                #compare with last listing using diff
+                diff --brief "$new_list" "$old_list" > /dev/null
+ 
+                #if different then there's something new, so trigger sync
+                if [ $? -ne 0 ]
+                	then 
+                        	#run custom sync command
+                        	sync_dir $sync_directory
+				#echo "was different"                
+                fi
+                
+                #Remove old listing
+		rm "$old_list"
+fi
+
+#make new listing into last listing 
+mv "$new_list" "$old_list"
