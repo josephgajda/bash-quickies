@@ -1,0 +1,4 @@
+#!/bin/sh
+mpstat -P ALL >> /var/log/mpstat.log
+uptime >> /var/log/mpstat.log
+date >> /var/log/mpstat.log
